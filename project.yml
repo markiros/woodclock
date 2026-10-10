@@ -24,8 +24,8 @@ targets:
         CFBundleName: WoodClock
         CFBundleDisplayName: Wood Clock
         CFBundlePackageType: BNDL
-        CFBundleShortVersionString: "1.11"
-        CFBundleVersion: "12"
+        CFBundleShortVersionString: "1.12"
+        CFBundleVersion: "13"
         NSPrincipalClass: WoodClockView
         NSHumanReadableCopyright: ""
     settings:
