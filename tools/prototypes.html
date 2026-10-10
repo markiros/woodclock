@@ -1,0 +1,75 @@
+<title>Деревянные часы — прототипы</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Bodoni+Moda:wght@500;600&family=Manrope:wght@400;500;600&display=swap">
+<style>
+/* Layout: тёмная витрина, 2×2 сетка живых циферблатов, подписи под каждым */
+:root{
+  --bg:#141110; --panel:#1c1816; --line:#2e2824;
+  --fg:#efe6da; --muted:#a2958a; --gold:#d8b46a;
+  --display:"Cormorant Garamond","Iowan Old Style",Georgia,serif;
+  --body:"Manrope",system-ui,-apple-system,sans-serif;
+  color-scheme:dark;
+}
+html,body{background:var(--bg);color:var(--fg)}
+body{font-family:var(--body);padding-inline:16px;padding-block:28px 48px}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+header{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:16px}
+h1{font-family:var(--display);font-weight:600;font-size:clamp(30px,5vw,46px);line-height:1.05;margin:0;text-wrap:balance}
+h1 em{color:var(--gold);font-style:italic}
+.sub{color:var(--muted);margin:8px 0 0;max-width:58ch;line-height:1.5}
+.toggle{display:flex;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:4px}
+.toggle button{font:500 13px var(--body);color:var(--muted);background:none;border:0;border-radius:999px;padding:7px 14px;cursor:pointer}
+.toggle button[aria-pressed="true"]{background:var(--gold);color:#1a1410}
+.toggle button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+@media (max-width:720px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.card svg{width:100%;max-width:420px;height:auto;margin:0 auto;display:block}
+.meta{display:flex;gap:14px;align-items:baseline}
+.tag{font-family:var(--display);font-size:34px;font-weight:700;color:var(--gold);line-height:1;min-width:24px}
+.meta h2{font-family:var(--display);font-size:24px;font-weight:600;margin:0 0 4px}
+.meta p{margin:0;color:var(--muted);font-size:14px;line-height:1.5}
+footer{color:var(--muted);font-size:13px;line-height:1.6;border-top:1px solid var(--line);padding-top:16px}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Дерево, <em>золото</em>, стекло</h1>
+      <p class="sub">Четыре прототипа аналогового циферблата для скринсейвера macOS. Стрелки идут по реальному времени. Выбранный вариант нарежу на слои PNG: дерево, разметка, стекло и каждая стрелка отдельно.</p>
+    </div>
+    <div class="toggle" role="group" aria-label="Ход секундной стрелки">
+      <button id="smooth" aria-pressed="true">Плавно</button>
+      <button id="tick" aria-pressed="false">Шагом</button>
+    </div>
+  </header>
+  <div class="grid" id="grid"></div>
+  <footer>Слои для нарезки: подложка (дерево + безель), разметка и цифры, часовая, минутная, секундная стрелка, центральная втулка, стекло с бликом. Тени стрелок рендерятся в самих PNG, чтобы на Mac не считать их в реальном времени.</footer>
+</div>
+
+<script src="dial.js"></script>
+<script>
+const clocks=variants.map(v=>{
+  const card=document.createElement('article');card.className='card';
+  const c=build(v);card.appendChild(c.svg);
+  card.insertAdjacentHTML('beforeend',`<div class="meta"><span class="tag">${v.id}</span><div><h2>${v.name}</h2><p>${v.desc}</p></div></div>`);
+  document.getElementById('grid').appendChild(card);return c;
+});
+
+let smooth=true;
+const bS=document.getElementById('smooth'),bT=document.getElementById('tick');
+bS.onclick=()=>{smooth=true;bS.setAttribute('aria-pressed','true');bT.setAttribute('aria-pressed','false')};
+bT.onclick=()=>{smooth=false;bT.setAttribute('aria-pressed','true');bS.setAttribute('aria-pressed','false')};
+if(matchMedia('(prefers-reduced-motion: reduce)').matches)bT.onclick();
+
+function frame(){
+  const d=new Date(),ms=d.getMilliseconds(),s=d.getSeconds()+(smooth?ms/1000:0),m=d.getMinutes()+d.getSeconds()/60,h=(d.getHours()%12)+m/60;
+  for(const c of clocks){
+    c.hh.setAttribute('transform',`rotate(${h*30} ${C} ${C})`);
+    c.mh.setAttribute('transform',`rotate(${m*6} ${C} ${C})`);
+    c.sh.setAttribute('transform',`rotate(${s*6} ${C} ${C})`);
+  }
+  requestAnimationFrame(frame);
+}
+frame();
+</script>

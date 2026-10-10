@@ -1,0 +1,42 @@
+name: WoodClock
+options:
+  deploymentTarget:
+    macOS: "12.0"
+targets:
+  WoodClock:
+    type: bundle
+    platform: macOS
+    sources:
+      - path: WoodClock/Sources
+      - path: WoodClock/Presets
+        type: folder
+        buildPhase: resources
+      - path: WoodClock/Resources
+        buildPhase: resources
+    dependencies:
+      - sdk: ScreenSaver.framework
+      - sdk: QuartzCore.framework
+    info:
+      path: WoodClock/Info.plist
+      properties:
+        CFBundleExecutable: $(EXECUTABLE_NAME)
+        CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
+        CFBundleName: WoodClock
+        CFBundleDisplayName: Wood Clock
+        CFBundlePackageType: BNDL
+        CFBundleShortVersionString: "1.11"
+        CFBundleVersion: "12"
+        NSPrincipalClass: WoodClockView
+        NSHumanReadableCopyright: ""
+    settings:
+      base:
+        PRODUCT_NAME: WoodClock
+        PRODUCT_BUNDLE_IDENTIFIER: com.mark.WoodClock
+        WRAPPER_EXTENSION: saver
+        SWIFT_VERSION: "5.0"
+        MACOSX_DEPLOYMENT_TARGET: "12.0"
+        COMBINE_HIDPI_IMAGES: NO
+        CODE_SIGN_IDENTITY: "-"
+        CODE_SIGN_STYLE: Manual
+        ENABLE_HARDENED_RUNTIME: NO
+        SKIP_INSTALL: YES

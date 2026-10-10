@@ -1,0 +1,104 @@
+{
+  "id": "maple",
+  "name": "Светлый клён",
+  "nameEn": "Maple",
+  "canvas": 400,
+  "layers": [
+    {
+      "name": "dial",
+      "file": "dial.png",
+      "size": [
+        0.95625,
+        0.96125
+      ],
+      "anchor": [
+        0.492156862745098,
+        0.4798439531859558
+      ]
+    },
+    {
+      "name": "hour",
+      "file": "hour.png",
+      "shadow": {
+        "file": "hour_shadow.png",
+        "offset": [
+          0.0075,
+          0.0125
+        ]
+      },
+      "rotates": "hour",
+      "size": [
+        0.09,
+        0.285
+      ],
+      "anchor": [
+        0.5,
+        0.8157894736842105
+      ]
+    },
+    {
+      "name": "minute",
+      "file": "minute.png",
+      "shadow": {
+        "file": "minute_shadow.png",
+        "offset": [
+          0.0075,
+          0.0125
+        ]
+      },
+      "rotates": "minute",
+      "size": [
+        0.08,
+        0.42
+      ],
+      "anchor": [
+        0.5,
+        0.8630952380952381
+      ]
+    },
+    {
+      "name": "second",
+      "file": "second.png",
+      "shadow": {
+        "file": "second_shadow.png",
+        "offset": [
+          0.0025,
+          0.00375
+        ]
+      },
+      "rotates": "second",
+      "size": [
+        0.03625,
+        0.43625
+      ],
+      "anchor": [
+        0.5,
+        0.7693409742120344
+      ]
+    },
+    {
+      "name": "cap",
+      "file": "cap.png",
+      "size": [
+        0.045,
+        0.045
+      ],
+      "anchor": [
+        0.4444444444444444,
+        0.4166666666666667
+      ]
+    },
+    {
+      "name": "glass",
+      "file": "glass.png",
+      "size": [
+        0.79,
+        0.79
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ]
+    }
+  ]
+}

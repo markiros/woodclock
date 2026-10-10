@@ -1,0 +1,138 @@
+<title>Циферблаты WoodClock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Alegreya+Sans:wght@400;500&display=swap">
+<style>
+/* Layout: часы на стене слева, табличка с названием и ряд циферблатов справа; на телефоне — в столбик */
+:root{
+  --wall:#e6ddd0; --wall-deep:#d8cdbd; --ink:#2a211b; --muted:#6f6257; --brass:#9a6a2e; --line:#cbbfae; --chip:#f3ede4; --screen:#000;
+  --display:'Cormorant Garamond', 'Bodoni 72', Georgia, serif;
+  --body:'Alegreya Sans', 'Segoe UI', system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --wall:#1f1a16; --wall-deep:#171310; --ink:#efe6da; --muted:#b0a395; --brass:#d6a764; --line:#3b322a; --chip:#2a231d; color-scheme:dark}}
+:root[data-theme="dark"]{--wall:#1f1a16; --wall-deep:#171310; --ink:#efe6da; --muted:#b0a395; --brass:#d6a764; --line:#3b322a; --chip:#2a231d; color-scheme:dark}
+body{background:radial-gradient(120% 90% at 35% 30%, var(--wall), var(--wall-deep)); background-color:var(--wall); color:var(--ink); font-family:var(--body); font-size:16px; line-height:1.5; min-height:100%}
+.wrap{max-width:1180px; margin:0 auto; padding-inline:16px; padding-block:28px 40px; display:grid; grid-template-columns:minmax(0,1.25fr) minmax(0,1fr); gap:40px; align-items:center}
+@media (max-width:820px){.wrap{grid-template-columns:1fr; gap:24px}}
+.stage{display:flex; justify-content:center}
+.clock{position:relative; width:min(100%, 640px); aspect-ratio:1; max-width:100%; border-radius:50%; transition:background-color .3s}
+/* неон рисуется прямо на чёрном экране заставки — даём ему чёрный круг */
+.clock.screen{background:var(--screen); box-shadow:0 0 0 14px var(--screen)}
+.clock img{position:absolute; display:block; max-width:none; pointer-events:none; user-select:none}
+.plate{min-width:0; display:flex; flex-direction:column; gap:18px}
+.eyebrow{font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--brass); margin:0}
+h1{font-family:var(--display); font-weight:600; font-size:clamp(34px,5vw,52px); line-height:1.05; margin:0; text-wrap:balance}
+h1 small{display:block; font-style:italic; font-weight:500; font-size:.5em; color:var(--muted); margin-top:6px}
+.desc{margin:0; color:var(--muted); max-width:46ch}
+.time{font-family:var(--display); font-size:22px; font-variant-numeric:tabular-nums; margin:0}
+.seg{display:inline-flex; border:1px solid var(--line); border-radius:999px; padding:3px; gap:2px; background:var(--chip); width:max-content}
+.seg button{font:inherit; font-size:14px; color:var(--muted); background:none; border:0; border-radius:999px; padding:5px 14px; cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink); color:var(--wall)}
+.seg button:focus-visible,.faces button:focus-visible{outline:2px solid var(--brass); outline-offset:2px}
+.faces{display:grid; grid-template-columns:repeat(auto-fill,minmax(84px,1fr)); gap:10px; margin:0; padding:0; list-style:none}
+.faces button{width:100%; background:none; border:1px solid transparent; border-radius:10px; padding:6px 4px 8px; cursor:pointer; color:var(--muted); font:inherit; font-size:12px; line-height:1.25; display:flex; flex-direction:column; align-items:center; gap:4px}
+.faces button img{width:72px; height:72px; max-width:100%; border-radius:50%}
+.faces button img.screen{background:var(--screen)}
+.faces button[aria-current="true"]{border-color:var(--line); background:var(--chip); color:var(--ink)}
+.faces button .new{color:var(--brass); font-size:11px; letter-spacing:.08em; text-transform:uppercase}
+.check{display:flex; align-items:center; gap:8px; font-size:14px; color:var(--ink); cursor:pointer; width:max-content}
+.check input{accent-color:var(--brass); width:16px; height:16px; margin:0}
+.check[aria-disabled="true"]{color:var(--muted); opacity:.55; cursor:default}
+.note{font-size:13px; color:var(--muted); margin:0; max-width:52ch}
+</style>
+
+<main class="wrap">
+  <div class="stage"><div class="clock" id="clock" role="img" aria-label="Аналоговые часы"></div></div>
+  <section class="plate" aria-live="polite">
+    <p class="eyebrow">WoodClock · скринсейвер для macOS · v1.11</p>
+    <h1 id="name">Неон, пунктир<small id="nameEn">Neon Dotted</small></h1>
+    <p class="desc" id="desc"></p>
+    <p class="time" id="time">--:--:--</p>
+    <div class="seg" role="group" aria-label="Секундная стрелка">
+      <button id="smooth" aria-pressed="true">Плавно</button>
+      <button id="tick" aria-pressed="false">Шагом</button>
+      <button id="hide" aria-pressed="false">Скрыть</button>
+    </div>
+    <label class="check" id="bounceRow"><input type="checkbox" id="bounce"> Дрожание при шаге</label>
+    <ul class="faces" id="faces"></ul>
+    <p class="note">Часы собраны из тех же PNG-слоёв и по тем же правилам, что и в заставке: размер и ось вращения каждого слоя берутся из preset.json, тени стрелок смещены вниз-вправо и вращаются вместе со стрелками.</p>
+  </section>
+</main>
+
+<script>
+// Веб-демо пресетов. Публикуется как claude.ai artifact; рядом кладутся папки presets/<id>/ из WoodClock/Presets.
+const IDS=['neon_dots','neon','filigree','walnut','marquetry','maple','ebony','station','ivory','lacquer','mahogany'];
+const NEW='neon_dots', SCREEN=new Set(['neon','neon_dots']);
+const DESC={
+  neon_dots:'Копия «Неона», но секундная стрелка — пунктир из светящихся зелёных точек, на кончике точка крупнее.',
+  neon:'Без корпуса, прямо на чёрном экране: яркие зелёные часовые метки, тусклые минутные штрихи, светящиеся мятные стрелки и тонкая зелёная секундная с длинным хвостом.',
+  filigree:'Ажурная бронзовая рама взята с фото без изменений. Белый циферблат с диском в тонкую полоску, крупные цифры с засечками, букет розовых роз, чёрные стрелки-пики с хвостом-якорем.',
+  walnut:'Тёплый американский орех, полированный золотой безель, прикладные индексы-бруски, стрелки Бреге.',
+  marquetry:'Двенадцать секторов из ореха и клёна, золотые точки, стрелки-шпаги под выпуклым стеклом.',
+  maple:'Светлый клён с золотой минутной дорожкой, арабские цифры Bodoni, гранёные стрелки дофин.',
+  ebony:'Почти чёрное эбеновое дерево, гравированные римские цифры в золоте, тонкие стрелки-листья.',
+  station:'Белый циферблат, светло-серый корпус со стыками, крупные квадратные цифры, чёрные стрелки-бруски.',
+  ivory:'Корпус цвета слоновой кости, крупные арабские цифры, дорожка с ромбами, гирлянда роз, стрелки с прорезью.',
+  lacquer:'Рисунок «Слоновой кости» в рамке из тёмного лакированного дерева.',
+  mahogany:'Корпус и циферблат из тёмного красного дерева, золотые цифры, дорожка, гирлянда и стрелки.'
+};
+const clock=document.getElementById('clock');
+let presets={}, current=null, rot=[], secMode='smooth', bounce=true;
+try{const m=localStorage.getItem('wc-sec'); if(m) secMode=m; const b=localStorage.getItem('wc-bounce'); if(b!==null) bounce=b==='1'}catch(e){}
+// та же пружина, что CASpringAnimation в заставке: k=3600, c=52, m=1 → ω0=60 рад/с, ζ≈0.43; старт от −6° без скорости
+const W0=60, Z=52/120, WD=W0*Math.sqrt(1-Z*Z);
+const wobble=t=>t>.7?0:-6*Math.exp(-Z*W0*t)*(Math.cos(WD*t)+Z*W0/WD*Math.sin(WD*t));
+if(matchMedia('(prefers-reduced-motion: reduce)').matches && secMode==='smooth') secMode='tick';
+
+function build(p){
+  clock.innerHTML=''; rot=[];
+  clock.classList.toggle('screen',SCREEN.has(p.id));
+  const S=clock.clientWidth;
+  const place=(file,size,anchor,off,kind)=>{
+    const img=new Image(); img.src=`presets/${p.id}/${file}`; img.alt='';
+    const w=size[0]*S,h=size[1]*S;
+    Object.assign(img.style,{width:w+'px',height:h+'px',left:(S/2-anchor[0]*w+off[0]*S)+'px',top:(S/2-anchor[1]*h+off[1]*S)+'px',transformOrigin:`${anchor[0]*100}% ${anchor[1]*100}%`});
+    clock.appendChild(img); if(kind) rot.push([img,kind]);
+  };
+  for(const L of p.layers){
+    if(L.shadow) place(L.shadow.file,L.size,L.anchor,L.shadow.offset,L.rotates);
+    place(L.file,L.size,L.anchor,[0,0],L.rotates);
+  }
+}
+function select(id){
+  current=presets[id]; if(!current) return;
+  build(current);
+  document.getElementById('name').firstChild.textContent=current.name;
+  document.getElementById('nameEn').textContent=current.nameEn||'';
+  document.getElementById('desc').textContent=DESC[id]||'';
+  document.querySelectorAll('.faces button').forEach(b=>b.setAttribute('aria-current',b.dataset.id===id));
+  frame(true);
+}
+function frame(once){
+  const d=new Date(), ms=d.getMilliseconds();
+  const s=d.getSeconds()+(secMode==='smooth'?ms/1000:0), m=d.getMinutes()+d.getSeconds()/60, h=d.getHours()%12+m/60;
+  const ang={hour:h*30,minute:m*6,second:s*6+(secMode==='tick'&&bounce?wobble(ms/1000):0)};
+  for(const [img,k] of rot){ img.style.transform=`rotate(${ang[k]}deg)`; if(k==='second') img.hidden=secMode==='hide'; }
+  document.getElementById('time').textContent=d.toLocaleTimeString('ru-RU');
+  if(!once) requestAnimationFrame(()=>frame());
+}
+function setSec(m){secMode=m; try{localStorage.setItem('wc-sec',m)}catch(e){}
+  for(const [id,v] of [['smooth','smooth'],['tick','tick'],['hide','hide']]) document.getElementById(id).setAttribute('aria-pressed',secMode===v);
+  const cb=document.getElementById('bounce'); cb.disabled=secMode!=='tick'; document.getElementById('bounceRow').setAttribute('aria-disabled',cb.disabled)}
+const cbB=document.getElementById('bounce'); cbB.checked=bounce;
+cbB.onchange=()=>{bounce=cbB.checked; try{localStorage.setItem('wc-bounce',bounce?'1':'0')}catch(e){}};
+['smooth','tick','hide'].forEach(id=>document.getElementById(id).onclick=()=>setSec(id));
+setSec(secMode);
+
+(async()=>{
+  const list=await Promise.all(IDS.map(id=>fetch(`presets/${id}/preset.json`).then(r=>r.json()).catch(()=>null)));
+  const ul=document.getElementById('faces');
+  list.forEach(p=>{ if(!p) return; presets[p.id]=p;
+    const li=document.createElement('li'); const b=document.createElement('button'); b.dataset.id=p.id;
+    b.innerHTML=`<img src="presets/${p.id}/preview.png" alt=""${SCREEN.has(p.id)?' class="screen"':''}><span>${p.name}</span>${p.id===NEW?'<span class="new">новый</span>':''}`;
+    b.onclick=()=>select(p.id); li.appendChild(b); ul.appendChild(li);
+  });
+  select(NEW); frame();
+  let t; new ResizeObserver(()=>{clearTimeout(t); t=setTimeout(()=>{if(current) build(current); frame(true)},80)}).observe(clock);
+})();
+</script>

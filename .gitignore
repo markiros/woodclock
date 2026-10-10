@@ -1,0 +1,4 @@
+build/
+WoodClock.xcodeproj/
+.DS_Store
+tools/_page.html

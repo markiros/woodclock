@@ -1,0 +1,104 @@
+{
+  "id": "filigree",
+  "name": "Бронзовое кружево",
+  "nameEn": "Bronze Filigree",
+  "canvas": 400,
+  "layers": [
+    {
+      "name": "dial",
+      "file": "dial.png",
+      "size": [
+        0.99625,
+        0.988125
+      ],
+      "anchor": [
+        0.4981179422835634,
+        0.4939911448450348
+      ]
+    },
+    {
+      "name": "hour",
+      "file": "hour.png",
+      "shadow": {
+        "file": "hour_shadow.png",
+        "offset": [
+          0.0075,
+          0.0125
+        ]
+      },
+      "rotates": "hour",
+      "size": [
+        0.0775,
+        0.254375
+      ],
+      "anchor": [
+        0.5,
+        0.7985257985257985
+      ]
+    },
+    {
+      "name": "minute",
+      "file": "minute.png",
+      "shadow": {
+        "file": "minute_shadow.png",
+        "offset": [
+          0.0075,
+          0.0125
+        ]
+      },
+      "rotates": "minute",
+      "size": [
+        0.1,
+        0.400625
+      ],
+      "anchor": [
+        0.5,
+        0.7425897035881436
+      ]
+    },
+    {
+      "name": "second",
+      "file": "second.png",
+      "shadow": {
+        "file": "second_shadow.png",
+        "offset": [
+          0.0025,
+          0.00375
+        ]
+      },
+      "rotates": "second",
+      "size": [
+        0.03,
+        0.35625
+      ],
+      "anchor": [
+        0.5,
+        0.8105263157894737
+      ]
+    },
+    {
+      "name": "cap",
+      "file": "cap.png",
+      "size": [
+        0.029375,
+        0.029375
+      ],
+      "anchor": [
+        0.425531914893617,
+        0.40425531914893614
+      ]
+    },
+    {
+      "name": "glass",
+      "file": "glass.png",
+      "size": [
+        0.64875,
+        0.64875
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ]
+    }
+  ]
+}

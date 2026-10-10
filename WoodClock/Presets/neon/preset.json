@@ -1,0 +1,71 @@
+{
+  "id": "neon",
+  "name": "Неон",
+  "nameEn": "Neon",
+  "canvas": 400,
+  "layers": [
+    {
+      "name": "dial",
+      "file": "dial.png",
+      "size": [
+        0.96875,
+        0.96875
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "name": "hour",
+      "file": "hour.png",
+      "rotates": "hour",
+      "size": [
+        0.02625,
+        0.32625
+      ],
+      "anchor": [
+        0.5,
+        0.8218390804597702
+      ]
+    },
+    {
+      "name": "minute",
+      "file": "minute.png",
+      "rotates": "minute",
+      "size": [
+        0.02375,
+        0.46375
+      ],
+      "anchor": [
+        0.5,
+        0.866576819407008
+      ]
+    },
+    {
+      "name": "second",
+      "file": "second.png",
+      "rotates": "second",
+      "size": [
+        0.01875,
+        0.53375
+      ],
+      "anchor": [
+        0.5,
+        0.8185011709601874
+      ]
+    },
+    {
+      "name": "cap",
+      "file": "cap.png",
+      "size": [
+        0.08375,
+        0.08375
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ]
+    }
+  ]
+}
