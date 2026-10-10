@@ -30,6 +30,33 @@ struct Preset: Decodable {
 
     var preview: NSImage? { NSImage(contentsOf: directory.appendingPathComponent("preview.png")) }
 
+    /// Превью для окна настроек, собранное из слоёв в позе preview.png (render.py: 304°, 48°, 150°).
+    /// Без секундной стрелки и её тени, если showSecond == false.
+    func composedPreview(side: CGFloat = 400, showSecond: Bool) -> NSImage? {
+        let angles: [String: CGFloat] = ["hour": 304, "minute": 48, "second": 150]
+        let px = Int(side)
+        guard let ctx = CGContext(data: nil, width: px, height: px, bitsPerComponent: 8, bytesPerRow: 0,
+                                  space: CGColorSpace(name: CGColorSpace.sRGB)!,
+                                  bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return nil }
+        ctx.interpolationQuality = .high
+        func draw(_ file: String, _ spec: PresetLayer, offset: CGPoint) {
+            guard let cg = image(file) else { return }
+            let w = spec.size[0] * side, h = spec.size[1] * side
+            ctx.saveGState()
+            // ось вращения в центре холста (+ сдвиг тени); y вверх, поэтому по часовой — отрицательный угол
+            ctx.translateBy(x: side / 2 + offset.x * side, y: side / 2 - offset.y * side)
+            if let r = spec.rotates, let a = angles[r] { ctx.rotate(by: -a * .pi / 180) }
+            ctx.draw(cg, in: CGRect(x: -spec.anchor[0] * w, y: -(1 - spec.anchor[1]) * h, width: w, height: h))
+            ctx.restoreGState()
+        }
+        for spec in layers {
+            if !showSecond && spec.rotates == "second" { continue }
+            if let sh = spec.shadow { draw(sh.file, spec, offset: CGPoint(x: sh.offset[0], y: sh.offset[1])) }
+            draw(spec.file, spec, offset: .zero)
+        }
+        return ctx.makeImage().map { NSImage(cgImage: $0, size: NSSize(width: side, height: side)) }
+    }
+
     func image(_ file: String) -> CGImage? {
         let url = directory.appendingPathComponent(file) as CFURL
         guard let src = CGImageSourceCreateWithURL(url, nil) else { return nil }

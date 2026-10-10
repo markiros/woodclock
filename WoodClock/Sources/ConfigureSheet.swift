@@ -129,12 +129,19 @@ final class ConfigureSheet: NSObject {
     }
 
     @objc private func presetChanged() {
-        let i = popup.indexOfSelectedItem
-        preview.image = presets.indices.contains(i) ? presets[i].preview : nil
+        updatePreview()
     }
 
     @objc private func secondsChanged() {
         bounce.isEnabled = seconds.selectedSegment == SecondsMode.tick.rawValue
+        updatePreview()
+    }
+
+    private func updatePreview() {
+        let i = popup.indexOfSelectedItem
+        guard presets.indices.contains(i) else { preview.image = nil; return }
+        let p = presets[i]
+        preview.image = p.composedPreview(showSecond: seconds.selectedSegment != SecondsMode.hidden.rawValue) ?? p.preview
     }
 
     @objc private func sizeChanged() {
