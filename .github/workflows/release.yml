@@ -4,23 +4,26 @@ name: Release
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:   # ручной запуск: только сборка, без релиза
 permissions:
   contents: write
 jobs:
   build:
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - run: brew install xcodegen
       - run: make build
       - name: Проверка версии
         run: |
           v=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" build/Release/WoodClock.saver/Contents/Info.plist)
-          [ "v$v" = "$GITHUB_REF_NAME" ] || { echo "::error::тег $GITHUB_REF_NAME не совпадает с версией $v"; exit 1; }
+          [ "$GITHUB_REF_TYPE" != tag ] || [ "v$v" = "$GITHUB_REF_NAME" ] || { echo "::error::тег $GITHUB_REF_NAME не совпадает с версией $v"; exit 1; }
           echo "Пресетов: $(ls build/Release/WoodClock.saver/Contents/Resources/Presets | wc -l)"
           lipo -archs build/Release/WoodClock.saver/Contents/MacOS/WoodClock
-      - run: ditto -c -k --keepParent build/Release/WoodClock.saver "WoodClock-$GITHUB_REF_NAME.zip"
+      - if: github.ref_type == 'tag'
+        run: ditto -c -k --keepParent build/Release/WoodClock.saver "WoodClock-$GITHUB_REF_NAME.zip"
       - name: Релиз
+        if: github.ref_type == 'tag'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
