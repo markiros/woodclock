@@ -34,7 +34,7 @@
 - `python3 tools/compose_check.py WoodClock/Presets check.png` — собирает кадр из слоёв по тем же правилам, что и Swift, для проверки нарезки.
 - `xcodebuild` пишет «failed with exit code 0 but produced no further output» — это не ошибка. Единственное предупреждение — устаревший `endSheet`.
 - Тестов нет. После правок кода — `make build`; после правок графики — смотреть отрендеренные/собранные картинки и проверять, что `preset.json` ссылается на существующие слои. При рефакторинге генератора перерендерить затронутые пресеты во временную папку и сравнить попиксельно с `WoodClock/Presets`.
-- Версия (`CFBundleShortVersionString` / `CFBundleVersion` в `project.yml`) поднимается при изменении пресетов и перед релизом.
+- Версия (`CFBundleShortVersionString` / `CFBundleVersion` в `project.yml`) поднимается при изменении пресетов и перед релизом; заодно обновить версию в заголовке веб-демо (`.ver` в `tools/web/index.html`).
 
 ## Релизы и CI
 

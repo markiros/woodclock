@@ -21,9 +21,14 @@ body{background:radial-gradient(120% 90% at 35% 30%, var(--wall), var(--wall-dee
 .clock img{position:absolute; display:block; max-width:none; pointer-events:none; user-select:none}
 .clock img[hidden]{display:none}
 .plate{min-width:0; display:flex; flex-direction:column; gap:18px}
-.eyebrow{font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--brass); margin:0}
-h1{font-family:var(--display); font-weight:600; font-size:clamp(34px,5vw,52px); line-height:1.05; margin:0; text-wrap:balance}
-h1 small{display:block; font-style:italic; font-weight:500; font-size:.5em; color:var(--muted); margin-top:6px}
+.mast{max-width:1180px; margin:0 auto; padding:36px 16px 0; display:flex; flex-wrap:wrap; align-items:baseline; column-gap:22px; row-gap:6px}
+.brand{font-family:var(--display); font-weight:600; font-size:clamp(46px,7vw,80px); line-height:.9; letter-spacing:-.01em; margin:0}
+.brand em{font-style:italic; font-weight:500; color:var(--brass)}
+.tag{display:flex; align-items:center; gap:12px; margin:0; font-size:13px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted)}
+.tag::before{content:""; width:36px; height:1px; background:var(--brass)}
+.ver{font-size:12px; letter-spacing:.06em; text-transform:none; color:var(--brass); border:1px solid currentColor; border-radius:999px; padding:1px 9px}
+.preset{font-family:var(--display); font-weight:600; font-size:clamp(32px,4.4vw,48px); line-height:1.05; margin:0; text-wrap:balance}
+.preset small{display:block; font-style:italic; font-weight:500; font-size:.5em; color:var(--muted); margin-top:6px}
 .desc{margin:0; color:var(--muted); max-width:46ch}
 .time{font-family:var(--display); font-size:22px; font-variant-numeric:tabular-nums; margin:0}
 .seg{display:inline-flex; border:1px solid var(--line); border-radius:999px; padding:3px; gap:2px; background:var(--chip); width:max-content}
@@ -50,11 +55,14 @@ h1 small{display:block; font-style:italic; font-weight:500; font-size:.5em; colo
 .note{font-size:13px; color:var(--muted); margin:0; max-width:52ch}
 </style>
 
+<header class="mast">
+  <h1 class="brand">Wood<em>Clock</em></h1>
+  <p class="tag">скринсейвер для macOS <span class="ver">v1.12</span></p>
+</header>
 <main class="wrap">
   <div class="stage"><div class="clock" id="clock" role="img" aria-label="Аналоговые часы"></div></div>
   <section class="plate" aria-live="polite">
-    <p class="eyebrow">WoodClock · скринсейвер для macOS · v1.12</p>
-    <h1 id="name">Неон, пунктир<small id="nameEn">Neon Dotted</small></h1>
+    <h2 class="preset" id="name">Неон, пунктир<small id="nameEn">Neon Dotted</small></h2>
     <p class="desc" id="desc"></p>
     <p class="time" id="time">--:--:--</p>
     <div class="seg" role="group" aria-label="Секундная стрелка">
