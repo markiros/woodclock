@@ -38,6 +38,9 @@ h1 small{display:block; font-style:italic; font-weight:500; font-size:.5em; colo
 .check{display:flex; align-items:center; gap:8px; font-size:14px; color:var(--ink); cursor:pointer; width:max-content}
 .check input{accent-color:var(--brass); width:16px; height:16px; margin:0}
 .check[aria-disabled="true"]{color:var(--muted); opacity:.55; cursor:default}
+.dl{display:inline-flex; align-items:center; gap:8px; width:max-content; font-size:15px; color:var(--wall); background:var(--ink); border-radius:999px; padding:8px 18px; text-decoration:none}
+.dl:hover{background:var(--brass)}
+.dl:focus-visible{outline:2px solid var(--brass); outline-offset:2px}
 .note{font-size:13px; color:var(--muted); margin:0; max-width:52ch}
 </style>
 
@@ -55,6 +58,7 @@ h1 small{display:block; font-style:italic; font-weight:500; font-size:.5em; colo
     </div>
     <label class="check" id="bounceRow"><input type="checkbox" id="bounce"> Дрожание при шаге</label>
     <ul class="faces" id="faces"></ul>
+    <a class="dl" href="https://github.com/markiros/woodclock/releases/latest">Скачать для macOS ↓</a>
     <p class="note">Часы собраны из тех же PNG-слоёв и по тем же правилам, что и в заставке: размер и ось вращения каждого слоя берутся из preset.json, тени стрелок смещены вниз-вправо и вращаются вместе со стрелками.</p>
   </section>
 </main>
