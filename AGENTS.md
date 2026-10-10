@@ -1,27 +1,62 @@
-# Repository Guidelines
+# WoodClock — руководство для агентов
 
-## Project Structure & Module Organization
+Скринсейвер для macOS: аналоговые часы, собранные из готовых PNG-слоёв. Общение с автором (Mark) — на русском.
 
-`WoodClock/Sources/` contains the Swift macOS screen saver: the view and animation logic, preset loading, settings, and configuration sheet. `WoodClock/Presets/<id>/` holds each clock face's `preset.json`, layered PNG artwork, and preview; add presets by copying this structure. Shared app resources live in `WoodClock/Resources/`. `tools/` contains the SVG dial generator (`dial.js`), rendering and composition scripts, and visual prototypes. `project.yml` is the XcodeGen project definition; generated project files and build output are disposable.
+## Состояние на 2026-10-10 (версия 1.12)
 
-## Build, Test, and Development Commands
+- Пресеты (`WoodClock/Presets/<id>/`): `walnut` «Орех и латунь» (по умолчанию), `marquetry` «Маркетри», `maple` «Светлый клён», `ebony` «Эбен и римские», `station` «Вокзальные» (белый циферблат, серый пластиковый корпус, цифры Orbitron, чёрные стрелки-бруски — сделан по фото вокзальных часов), `ivory` «Слоновая кость» (вариант F: кремовый корпус с валиками, белый циферблат, цифры Bodoni 72, дорожка с ромбами, гирлянда роз, стрелки с прорезью, часовая с кольцом, тонкая чёрная секундная; по фото настенных часов, логотип с фото не переносили), `mahogany` «Красное дерево» (вариант G: копия F — корпус и циферблат из тёмного красного дерева, золотые канты, цифры, дорожка, позолоченная гирлянда роз (`ROSE.gold`), золотые стрелки с тёмной прорезью, выпуклое стекло; переключается полем `ink:'gold'`), `lacquer` «Тёмный лак» (вариант H: копия F — белый циферблат, чёрные цифры, натуральные розы — в рамке `bezel:'lacquer'`: профиль как у mahogany, дерево темнее, без золота, глянцевые блики лака), `filigree` «Бронзовое кружево» (вариант I, по фото настенных часов: ажурная бронзовая рама **вырезана из фото без изменений** (автору важен рисунок резьбы — не перерисовывать) и лежит в `tools/frames/filigree.png`, в SVG — `<image>` поверх циферблата (`frame:{href,cx,cy,size,k}`); белый циферблат с полосатым диском, цифры Bodoni 72, букет розовых роз (`bouquet()`, `ROSE.pink`), чёрные стрелки-пики с хвостом-якорем; логотип с фото не переносили). Рама выходит за круг, поэтому у варианта `scale:.82` — циферблат, стрелки, втулка и стекло уменьшаются вокруг центра (`zoom()`). `neon` «Неон» (вариант J, по картинке: без корпуса и стекла, прямо на чёрном фоне заставки; яркие зелёные часовые метки, тусклые минутные штрихи, мятные стрелки со свечением, тонкая зелёная секундная с длинным хвостом; `neonLine()`; у стрелок нет теней — `NO_SHADOW` в `render.py`, пустые слои (стекло) в `preset.json` не попадают). `neon_dots` «Неон, пунктир» (вариант K: копия J, секундная стрелка — пунктир из светящихся точек с шагом 7 ед., на кончике точка крупнее; `sec:'neon-dots'`).
+- Порядок в списке задаётся в `Preset.swift` (`order`), пресет по умолчанию — `Settings.defaultPreset`.
+- Окно «Options…» переписано на фреймовую вёрстку без Auto Layout и кешируется в view: в первой версии на macOS 14+ кнопка ничего не делала. После правки окно открывается (проверено у пользователя).
+- После сохранения настроек рассылается `WoodClockSettingsChanged` — в Sonoma+ превью и окно настроек живут в разных экземплярах view.
+- Логирование: `os_log`, subsystem `com.mark.WoodClock`. Смотреть: `make log`.
+- Известная проблема: у пользователя ставилась старая сборка (4 пресета) — распаковывался не тот архив. Проверка установленного: `ls ~/Library/Screen\ Savers/WoodClock.saver/Contents/Resources/Presets` (должно быть 11 папок) и `CFBundleShortVersionString` = 1.12.
+- Рабочая копия — `~/Projects/wood-clock`; `~/Projects/wood-clock.bak` — старая версия 1.0, из неё не собирать.
+- Репозиторий: github.com/markiros/woodclock (публичный ради GitHub Pages).
 
-- `make build` generates `WoodClock.xcodeproj` with XcodeGen and builds a Release universal (`arm64` and `x86_64`) screen saver.
-- `make install` builds and copies the saver to `~/Library/Screen Savers`; `make uninstall` removes it.
-- `make clean` removes build output and the generated Xcode project.
-- `make presets` rerenders preset artwork. It needs Python 3, Pillow, Playwright with Chromium, and the Bodoni Moda and Cormorant Garamond fonts; see `README.md`.
-- `python3 tools/compose_check.py WoodClock/Presets check.png` composes preset layers into an image for visual inspection.
+## Структура
 
-There is no test suite configured. After code changes, run `make build`; after artwork changes, inspect the rendered/composed images and confirm each `preset.json` references valid layers.
+- `WoodClock/Sources/` — Swift-код скринсейвера:
+  - `WoodClockView.swift` — ScreenSaverView, каждый PNG = CALayer; `bounds` из `size`, `anchorPoint` из `anchor` (y инвертируется: в json от левого верхнего угла). Тени стрелок — отдельные слои со сдвигом `shadow.offset`, вращаются вокруг своей оси, поэтому свет всегда сверху-слева. Плавный режим — 30 fps, шаговый — обновление раз в секунду; с дрожанием на каждом шаге секундная стрелка и её тень получают `CASpringAnimation` (`transform.rotation.z`, от −6° к новой отметке, damping 52 → ζ≈0.43, проскок ≈1.3°, ~0.2 с; автор просил вдвое меньше, чем при damping 30) — её крутит Core Animation, таймер не учащается; только на шаге ровно в 1 с. В режиме «Скрыть» слои секундной стрелки не создаются.
+  - `ConfigureSheet.swift` — окно параметров (пресет + превью, секундная стрелка плавно/шагом/скрыть, галочка «Дрожание при шаге» (`Settings.bounce`, активна только в режиме «Шагом»), размер 40–95 %). Превью собирается из слоёв (`Preset.composedPreview`, поза как у `preview.png`: 304°/48°/150°) и в режиме «Скрыть» рисуется без секундной стрелки.
+  - `Settings.swift` — ScreenSaverDefaults; мини-локализация ru/en через `L.t`.
+  - `Preset.swift` — загрузка всех папок из `Resources/Presets` (новый пресет = новая папка, без изменения кода).
+- `WoodClock/Presets/<id>/` — `preset.json`, PNG-слои и `preview.png` каждого циферблата; новый пресет — копия этой структуры. ID — строчные и стабильные (например, `maple`), имена слоёв и ключи JSON — как у существующих пресетов. Пресеты попадают в бандл как ресурсы, поэтому пути и регистр должны совпадать.
+- `WoodClock/Resources/` — общие ресурсы.
+- `tools/` — генератор циферблатов, скрипты рендера и проверки, прототипы, веб-демо.
+- `project.yml` — описание проекта для XcodeGen. Настройки сборки менять здесь, а не в сгенерированном `.xcodeproj`; `WoodClock.xcodeproj` и `build/` — одноразовые, в git не коммитятся.
 
-## Coding Style & Naming Conventions
+## Сборка и проверка
 
-Follow the existing Swift style: four-space indentation, descriptive `UpperCamelCase` type names, and `lowerCamelCase` properties and methods. Keep screen saver behavior in `WoodClock/Sources/` and preset-specific artwork/configuration in its own directory. Use lowercase, stable preset IDs (for example, `maple`) and keep layer filenames and JSON keys consistent with existing presets. Match the surrounding JavaScript and Python style when editing tools; no formatter or linter is configured.
+- `make build` — генерирует `WoodClock.xcodeproj` через XcodeGen и собирает Release universal (arm64 + x86_64).
+- `make install` — собирает, копирует в `~/Library/Screen Savers` и перезапускает legacyScreenSaver/WallpaperAgent/System Settings; `make uninstall` — удаляет.
+- `make clean` — убирает сборку и сгенерированный проект.
+- `make presets` — перерендер всех пресетов (см. «Графика»).
+- `python3 tools/compose_check.py WoodClock/Presets check.png` — собирает кадр из слоёв по тем же правилам, что и Swift, для проверки нарезки.
+- `xcodebuild` пишет «failed with exit code 0 but produced no further output» — это не ошибка. Единственное предупреждение — устаревший `endSheet`.
+- Тестов нет. После правок кода — `make build`; после правок графики — смотреть отрендеренные/собранные картинки и проверять, что `preset.json` ссылается на существующие слои. При рефакторинге генератора перерендерить затронутые пресеты во временную папку и сравнить попиксельно с `WoodClock/Presets`.
+- Версия (`CFBundleShortVersionString` / `CFBundleVersion` в `project.yml`) поднимается при изменении пресетов и перед релизом.
 
-## Commit & Pull Request Guidelines
+## Релизы и CI
 
-This checkout has no Git history available to establish commit conventions; use concise imperative commit subjects (for example, `Add walnut dial preset`). In pull requests, describe the user-visible change, list build or visual checks performed, and include screenshots for artwork or UI changes. Link related issues when applicable and call out added preset assets or required tooling.
+- `.github/workflows/release.yml` — на тег `v*` собирает на `macos-15` через `make build`, сверяет тег с `CFBundleShortVersionString`, пакует `ditto` в `WoodClock-vX.Y.zip`, `gh release create`. Ручной запуск (`gh workflow run release.yml`) — только сборка, без релиза. Подпись ad-hoc (без Developer ID) — в заметках релиза команда `xattr -dr com.apple.quarantine`. Релизы: v1.11, v1.12.
+- Новый релиз: поднять версию в `project.yml`, закоммитить, `git tag vX.Y && git push origin main vX.Y`.
+- `.github/workflows/pages.yml` — веб-демо на GitHub Pages (см. «Графика»).
+- Экшены держать на версиях с Node 24 (`checkout@v7`, `configure-pages@v6`, `upload-pages-artifact@v5`, `deploy-pages@v5`).
 
-## Configuration & Generated Files
+## Графика
 
-Change build settings in `project.yml`, not the generated `.xcodeproj`. Avoid committing local build products or generated previews unless they are intentional preset assets. Preset JSON and image layers ship as bundle resources, so keep their paths and casing aligned.
+- Исходник всех циферблатов — `tools/dial.js` (SVG-генератор, варианты A–K), живой прототип — `tools/prototypes.html` (подключает `dial.js`, своей копии кода нет).
+- `make presets` → `tools/render.py`: рендер Playwright в 1600×1600, нарезка по слоям (dial, hour, minute, second, cap, glass + *_shadow), обрезка, запись `preset.json`, `preview.png`. Нужны Python 3, Pillow, Playwright с Chromium и шрифты Bodoni Moda, Cormorant Garamond, Orbitron (в системе их сейчас нет, полный перерендер подменит шрифты у старых пресетов A–E). Отдельные варианты: `python3 tools/render.py WoodClock/Presets F G H I J K`.
+- Фото-рамы (`tools/frames/`): вырезаны из снимка — модель цвета стены по краям кадра, альфа по отличию от неё и по насыщенности, сплошной пояс до начала ажура, тонкие ложные щели заполнены; PNG заранее увеличен до размера рендера (4 px на единицу). `render.py` ждёт загрузки `<image>`.
+- Веб-демо — `tools/web/index.html` (тело страницы без doctype). На GitHub Pages https://markiros.github.io/woodclock/: `pages.yml` при пуше в `tools/web` или `WoodClock/Presets` добавляет doctype/meta и кладёт рядом `presets/` из `WoodClock/Presets`. Также claude.ai artifact https://claude.ai/artifact/4jqhrCcSM3fE9y6yBQCDMR (публиковать с `url`, файлы пресетов как `presets/<id>/…` из `WoodClock/Presets`; при обновлении достаточно передать новые). Собирает часы из тех же PNG той же математикой, повторяет пружину дрожания; неоновым пресетам подкладывает чёрный круг (`SCREEN`); внизу кнопка «Скачать для macOS» на последний релиз.
+
+## Стиль кода и коммиты
+
+- Swift: четыре пробела, типы `UpperCamelCase`, свойства и методы `lowerCamelCase`. Поведение скринсейвера — в `WoodClock/Sources/`, графика и настройки пресета — в его папке. В JS и Python следовать окружающему стилю; форматтеров и линтеров нет. Комментарии — на русском, как в существующем коде.
+- Коммиты: короткий заголовок на русском (например, «Версия 1.12», «Веб-демо на GitHub Pages»), при необходимости — пояснение в теле. Не коммитить локальные сборки и случайные превью; `clock-*.kra` — рабочие файлы автора, без спроса не трогать.
+- В PR описывать видимое пользователю изменение, перечислять проверки (сборка, визуальные), прикладывать скриншоты для графики и UI, отмечать новые ассеты пресетов и нужные инструменты.
+
+## Возможные следующие шаги
+
+- «Вокзальные»: вариант без секундной стрелки (как на фото) или с красной.
+- Проверить работу на нескольких мониторах и в режиме превью.
