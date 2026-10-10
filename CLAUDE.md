@@ -19,6 +19,7 @@
 - `Settings.swift` — ScreenSaverDefaults; мини-локализация ru/en через `L.t`.
 - `Preset.swift` — загрузка всех папок из `Resources/Presets` (новый пресет = новая папка, без изменения кода).
 - Сборка: XcodeGen (`project.yml`) + `Makefile` (`make install` — universal arm64+x86_64, копирует в `~/Library/Screen Savers` и перезапускает legacyScreenSaver/WallpaperAgent/System Settings).
+- Релизы: `.github/workflows/release.yml` — на тег `v*` собирает на `macos-15` через `make build`, сверяет тег с `CFBundleShortVersionString`, пакует `ditto` в `WoodClock-vX.Y.zip`, `gh release create`. Подпись ad-hoc (без Developer ID) — в заметках релиза команда `xattr -dr com.apple.quarantine`. Первый релиз — v1.11 (https://github.com/markiros/woodclock/releases/tag/v1.11). Репозиторий: github.com/markiros/woodclock.
 
 ## Графика
 
