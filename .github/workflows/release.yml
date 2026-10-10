@@ -1,0 +1,40 @@
+# Сборка и релиз по тегу vX.Y: git tag v1.12 && git push origin v1.12
+# Тег должен совпадать с CFBundleShortVersionString из project.yml.
+name: Release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - run: brew install xcodegen
+      - run: make build
+      - name: Проверка версии
+        run: |
+          v=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" build/Release/WoodClock.saver/Contents/Info.plist)
+          [ "v$v" = "$GITHUB_REF_NAME" ] || { echo "::error::тег $GITHUB_REF_NAME не совпадает с версией $v"; exit 1; }
+          echo "Пресетов: $(ls build/Release/WoodClock.saver/Contents/Resources/Presets | wc -l)"
+          lipo -archs build/Release/WoodClock.saver/Contents/MacOS/WoodClock
+      - run: ditto -c -k --keepParent build/Release/WoodClock.saver "WoodClock-$GITHUB_REF_NAME.zip"
+      - name: Релиз
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > notes.md <<'NOTES'
+          ## Установка
+
+          1. Распакуйте архив и дважды щёлкните `WoodClock.saver` (или скопируйте в `~/Library/Screen Savers`).
+          2. Сборка не подписана Developer ID, поэтому снимите карантин:
+
+             ```
+             xattr -dr com.apple.quarantine ~/Library/Screen\ Savers/WoodClock.saver
+             ```
+          3. Системные настройки → Заставка → Wood Clock.
+
+          NOTES
+          gh release create "$GITHUB_REF_NAME" "WoodClock-$GITHUB_REF_NAME.zip" \
+            --title "WoodClock $GITHUB_REF_NAME" --notes-file notes.md --generate-notes
