@@ -161,7 +161,10 @@ final class ConfigureSheet: NSObject {
         close()
     }
 
-    @objc private func cancelPressed() { close() }
+    @objc private func cancelPressed() {
+        os_log("settings cancelled", log: wcLog, type: .default)
+        close()
+    }
 
     private func close() {
         if let parent = window.sheetParent {

@@ -48,7 +48,9 @@ final class WoodClockView: ScreenSaverView {
         NotificationCenter.default.addObserver(
             self, selector: #selector(settingsDidChange),
             name: WoodClockView.settingsChanged, object: nil)
-        os_log("WoodClock 1.2 view init, preview: %d, presets: %d", log: wcLog, type: .default, isPreview ? 1 : 0, presets.count)
+        os_log("WoodClock %{public}@ view init, preview: %d, presets: %d", log: wcLog, type: .default,
+               Bundle(for: WoodClockView.self).infoDictionary?["CFBundleShortVersionString"] as? String ?? "?",
+               isPreview ? 1 : 0, presets.count)
     }
 
     @objc private func screenSaverWillStop() {
