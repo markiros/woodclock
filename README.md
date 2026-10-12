@@ -30,10 +30,10 @@ make install        # собирает universal (arm64 + x86_64) и копир�
 Поднимите `CFBundleShortVersionString` в `project.yml`, закоммитьте и поставьте тег с той же версией:
 
 ```bash
-git tag v1.12 && git push origin main v1.12
+git tag v1.13 && git push origin main v1.13
 ```
 
-GitHub Actions (`.github/workflows/release.yml`) соберёт universal-бандл на macOS, проверит, что тег совпадает с версией, и создаст релиз с архивом `WoodClock-v1.12.zip`.
+GitHub Actions (`.github/workflows/release.yml`) соберёт universal-бандл на macOS, проверит, что тег совпадает с версией, и создаст релиз с архивом `WoodClock-v1.13.zip`.
 
 ## Настройки скринсейвера
 
