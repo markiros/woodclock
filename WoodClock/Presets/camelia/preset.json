@@ -1,0 +1,104 @@
+{
+  "id": "camelia",
+  "name": "Камелия",
+  "nameEn": "Camelia",
+  "canvas": 400,
+  "layers": [
+    {
+      "name": "dial",
+      "file": "dial.png",
+      "size": [
+        0.9225,
+        0.9225
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "name": "hour",
+      "file": "hour.png",
+      "shadow": {
+        "file": "hour_shadow.png",
+        "offset": [
+          0.0075,
+          0.0125
+        ]
+      },
+      "rotates": "hour",
+      "size": [
+        0.11375,
+        0.278125
+      ],
+      "anchor": [
+        0.5,
+        0.8471910112359551
+      ]
+    },
+    {
+      "name": "minute",
+      "file": "minute.png",
+      "shadow": {
+        "file": "minute_shadow.png",
+        "offset": [
+          0.0075,
+          0.0125
+        ]
+      },
+      "rotates": "minute",
+      "size": [
+        0.0825,
+        0.36625
+      ],
+      "anchor": [
+        0.5303030303030303,
+        0.89419795221843
+      ]
+    },
+    {
+      "name": "second",
+      "file": "second.png",
+      "shadow": {
+        "file": "second_shadow.png",
+        "offset": [
+          0.0025,
+          0.00375
+        ]
+      },
+      "rotates": "second",
+      "size": [
+        0.02375,
+        0.43875
+      ],
+      "anchor": [
+        0.5,
+        0.7022792022792023
+      ]
+    },
+    {
+      "name": "cap",
+      "file": "cap.png",
+      "size": [
+        0.035,
+        0.035
+      ],
+      "anchor": [
+        0.42857142857142855,
+        0.39285714285714285
+      ]
+    },
+    {
+      "name": "glass",
+      "file": "glass.png",
+      "size": [
+        0.79,
+        0.79
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ]
+    }
+  ]
+}

@@ -68,7 +68,7 @@ struct Preset: Decodable {
         guard let root = bundle.resourceURL?.appendingPathComponent("Presets"),
               let dirs = try? FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)
         else { return [] }
-        let order = ["walnut", "marquetry", "maple", "ebony", "station", "ivory", "lacquer", "mahogany", "filigree", "neon", "neon_dots"]
+        let order = ["walnut", "marquetry", "maple", "camelia", "ebony", "station", "ivory", "lacquer", "mahogany", "filigree", "neon", "neon_dots"]
         let rank = { (p: Preset) in order.firstIndex(of: p.id) ?? order.count }
         return dirs.compactMap { dir -> Preset? in
             guard let data = try? Data(contentsOf: dir.appendingPathComponent("preset.json")),

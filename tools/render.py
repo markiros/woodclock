@@ -27,6 +27,7 @@ PRESETS = {  # variant id -> (folder, name, english name)
     "I": ("filigree", "Бронзовое кружево", "Bronze Filigree"),
     "J": ("neon", "Неон", "Neon"),
     "K": ("neon_dots", "Неон, пунктир", "Neon Dotted"),
+    "L": ("camelia", "Камелия", "Camelia"),
 }
 ONLY = set(sys.argv[2:])  # необязательно: id вариантов, напр. `render.py WoodClock/Presets F`
 # тени стрелок (в единицах viewBox): dx, dy (вниз), blur, opacity
@@ -36,7 +37,8 @@ NO_SHADOW = {"J", "K"}    # неон на чёрном: тень стрелок 
 
 page_html = f"""<!doctype html><html><head><meta charset="utf-8">
 <style>html,body{{margin:0;background:transparent}} svg{{display:block}}</style></head>
-<body><div id="host"></div><script>{(HERE / 'dial.js').read_text()}
+<body><div id="host"></div><script>{(HERE / 'camelia.js').read_text()}
+{(HERE / 'dial.js').read_text()}
 window.renderVariant = id => {{
   const v = variants.find(x => x.id === id);
   const c = build(v);

@@ -25,7 +25,25 @@ const variants=[
   face:'none',bezel:'none',marks:'neon',hands:'neon',sec:'neon',glass:'none'},
  {id:'K',name:'Неон, пунктир',desc:'Копия «Неона», но секундная стрелка — пунктир из светящихся зелёных точек.',
   face:'none',bezel:'none',marks:'neon',hands:'neon',sec:'neon-dots',glass:'none'},
+ {id:'L',name:'Камелия',desc:'По фото настенных часов: корпус под светлый ясень с чёрным кантом — вырезан из фото, белый циферблат, фигурные цифры и логотип обведены с фото, надписи «кварц» и «Сделано в России» — Helvetica, минутная дорожка с числами, ажурные чёрные стрелки, тонкая красная секундная.',
+  face:'white',paper:'#f7f6f2',marks:'camelia',hands:'openwork',sec:'red',glass:'flat',
+  // рама вырезана из фото (tools/frames/camelia.png) уже в масштабе рендера: внешний край — r 184, край циферблата — r 147–148; без тени
+  frame:{href:'frames/camelia.png',cx:740,cy:740,size:1480,k:.25,r:149,shadow:false}},
 ];
+// «Камелия»: часовые цифры — центр по горизонтали и линия низа (по фото, симметрично), промежуток между знаками
+const CAM_HOURS={12:[0,-88.6],1:[51.6,-73.1],2:[89.7,-34.3],3:[109.9,15.3],4:[92.2,69],5:[52.4,104.2],
+  6:[0,119.3],7:[-52.4,104.2],8:[-92.2,69],9:[-109.9,15.3],10:[-89.7,-34.3],11:[-51.6,-73.1]};
+// цифры минутной дорожки — старинные: ширина, высота, насколько опускаются ниже строки; 0 — свой малый знак
+const CAM_MIN={'0':[7.55,7.2,0],'1':[5.3,7.1,0],'2':[6.9,7.2,0],'3':[6.85,9.2,2.1],'4':[7.4,9.4,2.3],'5':[6.7,9.1,2],'6':[7,9.3,0]};
+// число из обведённых знаков: x — центр, y — линия низа; size(ch) → [w,h,опускание,знак]
+function glyphs(parent,str,x,y,gap,size){
+  const sz=[...str].map(size), W=sz.reduce((s,[w])=>s+w,0)+gap*(str.length-1);
+  let cx=x-W/2;
+  sz.forEach(([w,h,dn,g])=>{
+    el('path',{d:g.d,transform:`translate(${cx} ${y+dn}) scale(${w/g.w} ${h/g.h})`},parent);
+    cx+=w+gap;
+  });
+}
 
 function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);parent&&parent.appendChild(e);return e}
 
@@ -234,7 +252,7 @@ function build(v){
       el('line',{x1:C,y1:C,x2:C+150*Math.sin(a),y2:C-150*Math.cos(a),stroke:'#d8b46a','stroke-width':.8,opacity:.7},svg)}
   }else if(v.face==='none'){
   }else if(v.face==='white'){
-    el('circle',{cx:C,cy:C,r:v.frame?160:156,fill:'#fbfbf9'},svg);   // под фото-рамой — с запасом под её край
+    el('circle',{cx:C,cy:C,r:v.frame?v.frame.r||160:156,fill:v.paper||'#fbfbf9'},svg);   // под фото-рамой — с запасом под её край
   }else{
     woodLayer(svg,defs,p,v.wood[0],v.wood[1],v.freq,'3',8,`dial${p}`);
   }
@@ -244,8 +262,43 @@ function build(v){
   if(v.face!=='none') el('circle',{cx:C,cy:C,r:150,fill:`url(#vig${p})`},svg);
 
   // разметка
-  const printed=neon||v.marks==='station'||v.marks==='ornate'||(v.marks==='classic'&&v.ink!=='gold');
+  const printed=neon||v.marks==='station'||v.marks==='ornate'||v.marks==='camelia'||(v.marks==='classic'&&v.ink!=='gold');
   const marks=el('g',printed?{}:{filter:`url(#shs${p})`},svg);
+  if(v.marks==='camelia'){
+    // тень канта на краю циферблата: свет сверху-слева, кольцо сдвинуто вправо-вниз
+    const ks=el('filter',{id:`ks${p}`,x:'-10%',y:'-10%',width:'120%',height:'120%'},defs); el('feGaussianBlur',{stdDeviation:'2.5'},ks);
+    el('clipPath',{id:`cf${p}`},defs).appendChild(el('circle',{cx:C,cy:C,r:v.frame.r}));
+    el('g',{'clip-path':`url(#cf${p})`},marks).appendChild(
+      el('circle',{cx:C+1.5,cy:C+2.5,r:155,fill:'none',stroke:'#000','stroke-width':12,opacity:.3,filter:`url(#ks${p})`}));
+    const ink='#161616', g=el('g',{fill:ink},marks);
+    // дорожка: линия, клиновидные минутные штрихи остриём наружу, точки на часах
+    el('circle',{cx:C,cy:C,r:132.1,fill:'none',stroke:ink,'stroke-width':1.4},marks);
+    for(let i=0;i<60;i++){
+      if(i%5===0) el('circle',{cx:C,cy:C-127,r:2.6,transform:`rotate(${i*6} ${C} ${C})`},g);
+      else el('path',{d:`M${C-.4} ${C-121.7} L${C+.4} ${C-121.7} L${C} ${C-129.5} Z`,transform:`rotate(${i*6} ${C} ${C})`},g);
+    }
+    // числа дорожки: верх наружу, поэтому нижние — вверх ногами
+    for(let k=1;k<=12;k++){
+      const t=el('g',{transform:`rotate(${k*30} ${C} ${C})`},g);
+      glyphs(t,String(k*5),C,C-137.6,1.1,ch=>[...CAM_MIN[ch],CAMELIA.glyph[ch==='0'?'o':ch]]);
+    }
+    // часовые цифры
+    for(const h in CAM_HOURS){
+      const [x,y]=CAM_HOURS[h], s=String(h);
+      glyphs(g,s,C+x,C+y,s==='10'?1.6:3.2,ch=>{const q=CAMELIA.glyph[ch];return [q.w,q.h,0,q]});
+    }
+    // надписи: логотип обведён с фото, остальное — Helvetica
+    el('path',{d:CAMELIA.logo,transform:`translate(${C} ${C})`},g);
+    const hv={'font-family':'Helvetica, Arial, sans-serif','font-size':7.6,fill:ink};
+    el('text',{...hv,x:C,y:C+81.5,'text-anchor':'middle'},g).textContent='кварц';
+    const R=142.2, a0=80*Math.PI/180;      // нижняя дуга слева направо, буквы стоят прямо
+    el('path',{id:`arc${p}`,d:`M${C-R*Math.sin(a0)} ${C+R*Math.cos(a0)} A${R} ${R} 0 0 0 ${C+R*Math.sin(a0)} ${C+R*Math.cos(a0)}`,fill:'none'},defs);
+    const off=d=>R*(80+d)*Math.PI/180;
+    for(const [s,d,anchor] of [['Сделано в',-4.3,'end'],['России',4.3,'start']]){
+      const t=el('text',{...hv,'font-size':5.8,'text-anchor':anchor},g);
+      el('textPath',{href:`#arc${p}`,startOffset:off(d)},t).textContent=s;
+    }
+  }
   if(neon){
     // минутные штрихи тусклые, часовые метки — яркие скруглённые бруски с ореолом
     for(let i=0;i<60;i++){ if(i%5===0) continue;
@@ -345,11 +398,12 @@ function build(v){
 
   }
   if(v.frame){ const f=v.frame;
-    el('image',{href:f.href,x:C-f.cx*f.k,y:C-f.cy*f.k,width:f.size*f.k,height:f.size*f.k,filter:`url(#sh${p})`},svg);
+    const img=el('image',{href:f.href,x:C-f.cx*f.k,y:C-f.cy*f.k,width:f.size*f.k,height:f.size*f.k},svg);
+    if(f.shadow!==false) img.setAttribute('filter',`url(#sh${p})`);
   }
   }
   // стрелки
-  const hc=v.hands==='dauphine'?'#2a170a':(v.hands==='baton'||v.hands==='fleur'||(v.hands==='slot'&&v.ink!=='gold'))?'#161616':`url(#gold${p})`;
+  const hc=v.hands==='dauphine'?'#2a170a':(v.hands==='baton'||v.hands==='fleur'||v.hands==='openwork'||(v.hands==='slot'&&v.ink!=='gold'))?'#161616':`url(#gold${p})`;
   const slotFill=v.ink==='gold'?'#2a0a04':'#f7f5ee';
   const H={
     breguet:{h:`M197 214 L197 145 A13 13 0 1 1 203 145 L203 214 Z M200 141 m-8 0 a8 8 0 1 0 16 0 a8 8 0 1 0 -16 0 Z M196 126 L200 104 L204 126 Z`,
@@ -368,6 +422,8 @@ function build(v){
            m:`M198 234 L198.8 108 L201.2 108 L202 234 Z M198.8 108 C191 100 194 88 200 66 C206 88 209 100 201.2 108 Z M186.8 236 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M206.8 236 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z`,
            mt:`M200 230 Q194 229 190 236 M200 230 Q206 229 210 236`},
     sword:{h:`M200 222 L193 202 L195 122 L200 104 L205 122 L207 202 Z`,m:`M200 224 L195 202 L196.5 76 L200 60 L203.5 76 L205 202 Z`},
+    // ажурные — обведены с фото (tools/camelia.js), часовая сделана симметричной; у основания — круглый воротник
+    openwork:{h:CAMELIA.h,m:CAMELIA.m},
   }[v.hands];
   const hh=el('g',{'data-layer':'hour'},svg), mh=el('g',{'data-layer':'minute'},svg), sh3=el('g',{'data-layer':'second'},svg);
   const hi=zoom(hh), mi=zoom(mh), si=zoom(sh3);
@@ -385,6 +441,10 @@ function build(v){
   if(H.hs) el('path',{d:H.hs,fill:slotFill},hi);
   if(H.ms) el('path',{d:H.ms,fill:slotFill},mi);
   if(H.mt) el('path',{d:H.mt,fill:'none',stroke:hc,'stroke-width':2.2,'stroke-linecap':'round'},mi);
+  if(v.hands==='openwork'){ // воротники: у часовой — с бронзовым ободком, минутная лежит сверху
+    el('circle',{cx:C,cy:C,r:7.9,fill:hc},hi); el('circle',{cx:C,cy:C,r:7.6,fill:'none',stroke:'#7c6a44','stroke-width':.6},hi);
+    el('circle',{cx:C,cy:C,r:6.5,fill:hc},mi);
+  }
   if(v.hands==='dauphine'){ // грань
     el('path',{d:'M200 212 L200 116 L209 200 Z',fill:'#d8b46a',opacity:.35},hi);
     el('path',{d:'M200 214 L200 64 L207 200 Z',fill:'#d8b46a',opacity:.35},mi);
@@ -392,17 +452,27 @@ function build(v){
   }
   const sc=v.sec==='dark'?'#7a1e14':(v.sec==='black'||v.sec==='thin')?'#161616':'#e9cf8a';
   if(v.sec.startsWith('neon')){}
+  else if(v.sec==='red'){ // тонкая красная, широкий хвост-противовес до самого центра
+    el('path',{d:'M197.5 250 L202.5 250 L202.5 213 L200.75 207 L200.6 79 L199.4 79 L199.25 207 L197.5 213 Z',fill:'#c41e2a'},si);
+    el('circle',{cx:C,cy:C,r:2.4,fill:'#c41e2a'},si);
+  }
   else if(v.sec.startsWith('thin')) el('path',{d:'M199.4 230 L199.5 62 L200.5 62 L200.6 230 Z',fill:sc},si);
   else{
     el('rect',{x:199.2,y:68,width:1.6,height:170,fill:sc},si);
     el('circle',{cx:C,cy:226,r:5,fill:sc},si);
   }
-  if(!v.sec.startsWith('neon')) el('circle',{cx:C,cy:C,r:4.5,fill:sc},si);
+  if(!v.sec.startsWith('neon')&&v.sec!=='red') el('circle',{cx:C,cy:C,r:4.5,fill:sc},si);
   { const svg=zoom(el('g',{'data-layer':'cap'},root));
   // втулка
   if(v.hands==='neon'){
     el('circle',{cx:C,cy:C,r:13,fill:'#5dff9c',opacity:.22,filter:`url(#ng${p})`},svg);
     el('circle',{cx:C,cy:C,r:5.2,fill:'#c6ffde'},svg);
+  }else if(v.hands==='openwork'){
+    // светлая латунь, гранёный купол
+    const br=el('radialGradient',{id:`br${p}`,cx:'.38',cy:'.34',r:'.7'},defs);
+    [['0','#fbf6e4'],['.45','#d6c99c'],['.8','#9a8656'],['1','#5e4e2c']].forEach(([o,c])=>el('stop',{offset:o,'stop-color':c},br));
+    el('circle',{cx:C,cy:C,r:5,fill:`url(#br${p})`,filter:`url(#shs${p})`},svg);
+    el('circle',{cx:C,cy:C,r:4.6,fill:'none',stroke:'#fffbe8','stroke-width':.4,opacity:.5},svg);
   }else if(v.hands==='baton'||v.hands==='fleur'){
     el('circle',{cx:C,cy:C,r:5,fill:'#161616',filter:`url(#shs${p})`},svg);
     el('circle',{cx:C,cy:C,r:1.6,fill:'#6a6a6a'},svg);

@@ -59,7 +59,7 @@ body{background:radial-gradient(120% 90% at 35% 30%, var(--wall), var(--wall-dee
 
 <header class="mast">
   <h1 class="brand">Wood<em>Clock</em></h1>
-  <p class="tag">скринсейвер для macOS <span class="ver">v1.13</span></p>
+  <p class="tag">скринсейвер для macOS <span class="ver">v1.14</span></p>
 </header>
 <main class="wrap">
   <div class="stage"><div class="clock" id="clock" role="img" aria-label="Аналоговые часы"></div></div>
@@ -87,9 +87,10 @@ body{background:radial-gradient(120% 90% at 35% 30%, var(--wall), var(--wall-dee
 
 <script>
 // Веб-демо пресетов. Публикуется как claude.ai artifact; рядом кладутся папки presets/<id>/ из WoodClock/Presets.
-const IDS=['neon_dots','neon','filigree','walnut','marquetry','maple','ebony','station','ivory','lacquer','mahogany'];
-const NEW='neon_dots', SCREEN=new Set(['neon','neon_dots']);
+const IDS=['camelia','neon_dots','neon','filigree','walnut','marquetry','maple','ebony','station','ivory','lacquer','mahogany'];
+const NEW='camelia', SCREEN=new Set(['neon','neon_dots']);
 const DESC={
+  camelia:'По фото настенных часов: корпус под светлый ясень с чёрным кантом вырезан из снимка, фигурные цифры и логотип обведены с фото, надписи «кварц» и «Сделано в России» набраны Helvetica, минутная дорожка с числами, ажурные чёрные стрелки и тонкая красная секундная.',
   neon_dots:'Копия «Неона», но секундная стрелка — пунктир из светящихся зелёных точек, на кончике точка крупнее.',
   neon:'Без корпуса, прямо на чёрном экране: яркие зелёные часовые метки, тусклые минутные штрихи, светящиеся мятные стрелки и тонкая зелёная секундная с длинным хвостом.',
   filigree:'Ажурная бронзовая рама взята с фото без изменений. Белый циферблат с диском в тонкую полоску, крупные цифры с засечками, букет розовых роз, чёрные стрелки-пики с хвостом-якорем.',
